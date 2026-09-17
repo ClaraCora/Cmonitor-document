@@ -1,9 +1,19 @@
 // Renders every route to its own index.html. GitHub Pages then serves real
 // markup at every URL -- what a reader on a slow connection, a search engine
 // and `curl` all get before any JavaScript runs.
-import { mkdir, readFile, writeFile } from "node:fs/promises"
-import { dirname, join } from "node:path"
-import { render, routes } from "../dist-ssr/entry-server.js"
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises"
+import { basename, dirname, join } from "node:path"
+import { pathToFileURL } from "node:url"
+
+// Plain Vite writes dist-ssr/entry-server.js. Cloudflare's Vite integration
+// places the same bundle under assets/ and adds a content hash. Locate the
+// generated entry instead of coupling prerendering to either layout.
+const ssrDir = join(import.meta.dirname, "..", "dist-ssr")
+const ssrEntry = (await readdir(ssrDir, { recursive: true })).find((file) =>
+  /^entry-server(?:-[A-Za-z0-9_-]+)?\.js$/.test(basename(file)),
+)
+if (!ssrEntry) throw new Error("SSR build did not produce an entry-server JavaScript bundle")
+const { render, routes } = await import(pathToFileURL(join(ssrDir, ssrEntry)).href)
 
 const dist = join(import.meta.dirname, "..", "dist")
 const template = await readFile(join(dist, "index.html"), "utf8")

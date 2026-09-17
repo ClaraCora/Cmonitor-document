@@ -64,10 +64,8 @@ function pageDates(): Plugin {
   }
 }
 
-// GitHub project pages are published below the repository name. The router and
-// prerenderer both consume this value, so links and static assets share one
-// prefix.
-const base = "/Cmonitor-document/"
+// Cloudflare Pages serves the project from the root of its own domain.
+const base = "/"
 
 export default defineConfig({
   base,

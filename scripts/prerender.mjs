@@ -1,4 +1,4 @@
-// Renders every route to its own index.html. GitHub Pages then serves real
+// Renders every route to its own HTML file. The static host then serves real
 // markup at every URL -- what a reader on a slow connection, a search engine
 // and `curl` all get before any JavaScript runs.
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises"

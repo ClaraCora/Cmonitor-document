@@ -28,3 +28,10 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run build
+      - name: Verify Cloudflare SSR output layout
+        run: |
+          mkdir -p dist-ssr/assets
+          entry="$(find dist-ssr -maxdepth 1 -name 'entry-server*.js' -print -quit)"
+          test -n "$entry"
+          mv "$entry" dist-ssr/assets/entry-server-cloudflare.js
+          node scripts/prerender.mjs

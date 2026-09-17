@@ -14,7 +14,11 @@ curl -fsSL https://hub.example.com/install.sh | sh -s -- \
 二进制由 hub 转发（`<hub>/agent/<arch>`），节点不需要能连上 GitHub——能连上 hub 就能装，
 IPv6-only 或者出不去的机器也一样。
 
-安装脚本会从 [Cagent](https://github.com/ClaraCora/Cagent) 的最新 Release 获取二进制，并把服务配置为
+Hub `v1.2.6` 起，根据内置的 `agent.pin` 从 [Cagent](https://github.com/ClaraCora/Cagent) 的固定 Release
+获取二进制。Hub 校验固定 SHA-256 后才转发，安装脚本再次校验后才安装，校验失败不会替换正在运行的 Agent。
+使用第三方 GitHub 下载代理也不能跳过该校验。升级 Agent 固定版本时需要先更新 Hub。
+
+安装脚本把服务配置为
 root。这样 [Web Terminal](/guide/web-terminal) 才能在目标节点提供完整的 root 权限。Cagent `v1.1.1`
 起会拒绝非 root 的终端请求；旧安装重跑同一条节点安装命令即可更新二进制和服务定义。
 

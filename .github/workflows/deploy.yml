@@ -35,3 +35,5 @@ jobs:
           test -n "$entry"
           mv "$entry" dist-ssr/assets/entry-server-cloudflare.js
           node scripts/prerender.mjs
+      - name: Verify Wrangler deployment package
+        run: npx --yes wrangler@4 deploy --dry-run --outdir .wrangler-dry-run

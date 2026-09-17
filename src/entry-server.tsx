@@ -10,8 +10,8 @@ export function render(url: string) {
 export const routes = [
   {
     path: "/",
-    title: "monitor — 服务器探针文档",
-    desc: "用 Rust 写的服务器探针：hub 单二进制 6.0 MiB，agent 1.7 MiB，默认只监听回环。安全、极简、高效。",
+    title: "Cmonitor — 服务器探针文档",
+    desc: "用 Rust 写的轻量级服务器探针，支持通过在线 Cagent 打开无需 SSH 凭据的 Web Terminal。",
   },
-  ...docs.map((d) => ({ path: d.path, title: `${d.label} — monitor 文档`, desc: d.desc })),
+  ...docs.map((d) => ({ path: d.path, title: `${d.label} — Cmonitor 文档`, desc: d.desc })),
 ]

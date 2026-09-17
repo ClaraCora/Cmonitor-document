@@ -64,10 +64,10 @@ function pageDates(): Plugin {
   }
 }
 
-// Cloudflare Pages serves the project at the root of its own subdomain, so there
-// is no path prefix to carry. Moving back under a subdirectory requires changing
-// this line alone.
-const base = "/"
+// GitHub project pages are published below the repository name. The router and
+// prerenderer both consume this value, so links and static assets share one
+// prefix.
+const base = "/Cmonitor-document/"
 
 export default defineConfig({
   base,

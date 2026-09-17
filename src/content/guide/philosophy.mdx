@@ -3,10 +3,10 @@
 ### 装 agent 不扩大被监控机器的攻击面
 
 - **不监听任何端口。** 连接由 agent 主动向 hub 发起，目标机器不必开端口，也不必改防火墙
-- **不写任何文件。** 只读 `/proc`、`/etc/os-release` 和 `statvfs`，没有配置文件、数据库或缓存。
+- **监控采集不写文件。** 指标采集只读 `/proc`、`/etc/os-release` 和 `statvfs`，没有数据库或缓存。
   累加流量、识别重启这些有状态的事都在 hub 侧
-- **不执行任何来自 hub 的东西。** hub 下发的只有 TCP 探测任务（`host:port` 和间隔），没有一条
-  指令能让 agent 运行命令或写文件
+- **终端不需要 SSH 凭据。** 管理员主动打开 Web Terminal 时，Cagent 以 `monitor-agent` 用户创建本地
+  PTY；hub 只转发输入输出，不保存密码或私钥
 - **不自动更新。** 自更新等于让 agent 有权以 root 下载并执行任意二进制。升级是重跑一遍安装命令
 
 ### 最小权限运行
@@ -18,7 +18,7 @@ systemd 单元不是只写一行 `ExecStart`：
 | 身份 | 专用系统用户 `monitor-agent` | 专用系统用户 `monitor` |
 | 文件系统 | `ProtectSystem=strict` + `ProtectHome`，全盘只读 | 同上，另加 `ReadWritePaths` 只开 `data/` |
 | 提权 | `NoNewPrivileges`、`RestrictSUIDSGID` | `NoNewPrivileges`、`RestrictSUIDSGID` |
-| 隔离 | `PrivateTmp`、`PrivateDevices` | `PrivateTmp`、`PrivateDevices` |
+| 隔离 | `PrivateTmp`；保留 PTY 所需的 `/dev/ptmx` 与 `/dev/pts` | `PrivateTmp`、`PrivateDevices` |
 | 网络 | `RestrictAddressFamilies=AF_INET AF_INET6 AF_NETLINK` | `AF_INET AF_INET6` |
 | 内存 | `MemoryMax=64M` | `MemoryMax=256M` |
 
@@ -32,8 +32,8 @@ hub 因此连自己的二进制都改不了：可写的只有数据库和主题�
 `systemctl cat` 和日志里。
 
 <Note warn>
-  OpenRC 上 agent 以 root 运行。上表的隔离项都是 systemd 的单元选项，OpenRC 没有对应开关，
-  两边等价的只有自动重启和 token 的存放方式。
+  OpenRC 没有 systemd 的挂载命名空间与 `NoNewPrivileges` 等隔离项，但 agent 和终端仍以
+  `monitor-agent:monitor-agent` 用户运行。
 </Note>
 
 ### 凭证的边界
@@ -70,14 +70,14 @@ hub 只有四个命令行参数：`--listen`、`--db`、`--themes`、`--site`。
 | 不做 | 原因 |
 |---|---|
 | 负载告警 | 阈值、持续时长、节点范围是一整套规则引擎。通知只做掉线、流量、到期、登录这几件判定明确的事 |
-| 远程 SSH / web terminal | 只读的观察者被攻破，和能执行命令的工具被攻破，代价差一个数量级 |
+| SSH 密码 / 私钥托管 | 凭据不进入 hub。Web Terminal 只复用 Cagent 已建立的连接，并以低权限用户执行 |
 | 插件系统 | 等于把第三方代码请进 hub 的进程 |
 | ICMP / HTTP 探测 | TCP 一种够用，三种要三套超时语义、三套图例 |
 | agent 自动更新 | 自更新意味着 agent 能以 root 下载并执行任意二进制 |
 | 跨平台 agent | 加 Windows / macOS 等于推翻整个采集实现 |
 
-这些不是排期靠后，是不会做。探针的职责是报告机器的状态，不是代管机器。没写的代码不占内存，
-也不会有漏洞。
+这些不是排期靠后，是不会做。Web Terminal 是唯一的远程命令入口，并被限制在已登录管理员、在线
+Cagent 和低权限本地 PTY 这三层边界内。
 
 ## 高效
 

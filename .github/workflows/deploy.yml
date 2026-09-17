@@ -7,6 +7,8 @@ on:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
 
 # A second push during a deploy supersedes it rather than queueing.
 concurrency:
@@ -16,6 +18,9 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -25,12 +30,13 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      - uses: actions/configure-pages@v5
       - run: npm ci
+      - run: npm run lint
       - run: npm run build
-      # Direct upload rather than the Pages Git integration: the token below is
-      # scoped to Pages alone, and the build that ships is the one this workflow
-      # produced.
-      - run: npx wrangler@4 pages deploy dist --project-name monitor-document --branch main
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

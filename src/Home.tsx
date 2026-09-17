@@ -18,12 +18,12 @@ const SECURITY = [
     d: "连接由 agent 主动向 hub 发起，被监控的机器不必开端口，也不必改防火墙。",
   },
   {
-    t: "agent 不写文件，也不存状态",
-    d: "只读 /proc 和 statvfs，没有配置文件、数据库或缓存。累加、判重启这些有状态的事都在 hub 侧，卸载就是删掉一个二进制和一份服务定义。",
+    t: "终端不托管 SSH 凭据",
+    d: "Web Terminal 复用 agent 已建立的 WebSocket，由节点上的 Cagent 打开本地 PTY。hub 不保存 SSH 密码或私钥，节点也不必开放 22 端口。",
   },
   {
     t: "两个服务都降权运行",
-    d: "各以专用系统用户运行，systemd 单元带 NoNewPrivileges、ProtectSystem=strict、ProtectHome、PrivateTmp、PrivateDevices，并限死地址族与内存上限。hub 只写得了 data/ 一个目录，连自己的二进制都改不了。",
+    d: "hub 与 agent 各以专用系统用户运行。终端命令继承 monitor-agent 的权限和 systemd 沙箱，不会得到 root、节点 token 或 SSH 凭据。",
   },
   {
     t: "默认只监听回环",
@@ -37,16 +37,15 @@ const FEATURES = [
     d: "单个静态二进制，不依赖解释器、虚拟机或运行时库。内存不随负载起伏：空转 6.1 MiB，200 个节点同时在线 8.4 MiB，占一颗核的 2.5%。",
   },
   {
-    t: "功能已经收束到极致",
-    d: "代码质量高到离谱。没写的代码不占体积，不占内存，也不会有漏洞。",
+    t: "监控与终端共用一条通道",
+    d: "指标上报和终端帧都走 Cagent 主动建立的连接。hub 只负责登录校验和转发，不从公网直连节点。",
   },
 ]
 
-const DOING = ["服务器基础信息", "网络延迟", "流量统计", "掉线、流量与到期通知"]
+const DOING = ["服务器基础信息", "网络延迟", "流量统计", "掉线、流量与到期通知", "Agent 直连 Web Terminal"]
 
 const NOT_DOING = [
-  "web terminal",
-  "远程 SSH",
+  "SSH 密码 / 私钥托管",
   "负载告警",
   "插件系统",
   "ICMP / HTTP 探测",
@@ -69,10 +68,10 @@ export function Home({ found = true }: { found?: boolean }) {
       {/* hero */}
       <section className="mx-auto max-w-[88rem] px-4 pt-20 pb-16 text-center lg:px-8 lg:pt-32 lg:pb-24">
         <h1 className="mx-auto max-w-3xl text-4xl leading-[1.15] font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
-          安全、极简、高效。
+          Cmonitor
         </h1>
         <p className="mx-auto mt-6 max-w-xl text-[1.0625rem] leading-[1.7] text-muted-foreground">
-          用 Rust 写的轻量级服务器探针。
+          安全、极简、高效的 Rust 服务器探针，内置 Agent 直连 Web Terminal。
         </p>
 
         <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
@@ -143,13 +142,13 @@ export function Home({ found = true }: { found?: boolean }) {
       <section className="border-t border-border bg-muted/20">
         <div className="mx-auto grid max-w-[88rem] gap-10 px-4 py-20 lg:grid-cols-2 lg:gap-20 lg:px-8 lg:py-28">
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">我们只有</h2>
+            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">核心能力</h2>
             <ul className="mt-8 grid gap-px overflow-hidden rounded-lg border border-border bg-border">
               {DOING.map((n) => (
                 <li key={n} className="bg-background px-4 py-3.5 text-[0.9375rem]">{n}</li>
               ))}
             </ul>
-            <p className="mt-8 text-2xl font-semibold tracking-tight sm:text-3xl">就是这么极简。</p>
+            <p className="mt-8 text-2xl font-semibold tracking-tight sm:text-3xl">一套面板，一条 Agent 通道。</p>
           </div>
           <div>
             <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">这些我们不做</h2>

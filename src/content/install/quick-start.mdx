@@ -3,7 +3,7 @@
 ### 方式 1：一键脚本
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/monitor-probe/monitor/main/install-hub.sh -o install-hub.sh
+curl -fsSL https://raw.githubusercontent.com/ClaraCora/Cmonitor/main/install-hub.sh -o install-hub.sh
 chmod +x install-hub.sh
 sudo ./install-hub.sh
 ```
@@ -16,7 +16,7 @@ sudo ./install-hub.sh
 ```bash
 docker run -d --name monitor -p 127.0.0.1:28080:28080 \
   -v monitor-data:/data -e TZ=Asia/Shanghai \
-  stqfdyr/monitor
+  ghcr.io/claracora/cmonitor:latest
 ```
 
 `TZ` 要设成 hub 所在的时区，不设按 UTC 算日流量和账单周期。compose 写法见

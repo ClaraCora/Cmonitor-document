@@ -19,7 +19,7 @@ export function App({ url }: { url: string }) {
   const Page = pages[path]
 
   useEffect(() => {
-    document.title = doc ? `${doc.label} — monitor 文档` : "monitor — 服务器探针文档"
+    document.title = doc ? `${doc.label} — Cmonitor 文档` : "Cmonitor — 服务器探针文档"
   }, [doc])
 
   return (

@@ -1,7 +1,7 @@
 ```bash
 docker run -d --name monitor -p 127.0.0.1:28080:28080 \
   -v monitor-data:/data -e TZ=Asia/Shanghai \
-  stqfdyr/monitor
+  ghcr.io/claracora/cmonitor:latest
 ```
 
 首次启动的应急密码在日志里：
@@ -15,7 +15,7 @@ docker logs monitor | grep Emergency
 ```yaml
 services:
   monitor:
-    image: stqfdyr/monitor
+    image: ghcr.io/claracora/cmonitor:latest
     container_name: monitor
     restart: unless-stopped
     # 127.0.0.1 而不是 0.0.0.0：容器端口只对本机开，域名由反代接进来。
@@ -44,13 +44,13 @@ volumes:
 ```bash
 sudo mkdir -p /opt/monitor && sudo chown 65534:65534 /opt/monitor
 docker run -d --name monitor -p 127.0.0.1:28080:28080 \
-  -v /opt/monitor:/data -e TZ=Asia/Shanghai stqfdyr/monitor
+  -v /opt/monitor:/data -e TZ=Asia/Shanghai ghcr.io/claracora/cmonitor:latest
 ```
 
 ## 升级
 
 ```bash
-docker pull stqfdyr/monitor
+docker pull ghcr.io/claracora/cmonitor:latest
 docker rm -f monitor && docker run -d ...   # 同一条命令，数据在 volume 里
 ```
 

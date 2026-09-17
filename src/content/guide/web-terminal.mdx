@@ -1,0 +1,55 @@
+Web Terminal 通过节点上已经在线的 Cagent 打开本地 PTY。它不使用 SSH 协议，不需要 SSH 密码、
+私钥或 `sshd`，也不要求节点开放 22 端口。
+
+```text
+浏览器 ──WebSocket──▶ Cmonitor hub ──已有 Agent WebSocket──▶ Cagent ──▶ 本地 PTY
+```
+
+hub 负责管理员会话校验和消息转发。真正的 shell 进程在目标节点上由 Cagent 创建。
+
+## 版本要求
+
+| 组件 | 最低版本 |
+|---|---|
+| Cmonitor hub | `v1.2.0` |
+| Cagent | `v1.1.0` |
+
+旧 agent 可以继续上报监控数据，但不能创建终端。重跑节点安装命令即可升级 Cagent。
+
+## 打开终端
+
+1. 登录 Cmonitor 管理后台
+2. 打开**节点**列表，确认目标节点在线
+3. 点击节点操作列中的终端图标
+4. 看到“已连接”后直接输入命令
+
+关闭对话框、浏览器断开、agent 掉线或 shell 退出时，hub 会通知 Cagent 清理对应的 PTY 和进程组。
+
+## 终端权限
+
+终端命令以 `monitor-agent` 服务用户运行，不是 root。systemd 部署继续受 `NoNewPrivileges`、
+`ProtectSystem=strict`、`ProtectHome` 和 `PrivateTmp` 限制；OpenRC 部署同样使用
+`monitor-agent:monitor-agent` 用户。
+
+Cagent 在启动 shell 前移除 `MONITOR_TOKEN` 与 `MONITOR_SERVER`，所以在终端里执行 `env` 不会看到
+节点 token 或 hub 地址。hub 也不保存任何 SSH 凭据。
+
+<Note warn>
+  Web Terminal 仍然是远程命令执行入口。只给可信管理员登录权限，使用 HTTPS，并及时撤销不再需要的
+  GitHub 白名单账号或管理会话。
+</Note>
+
+## 常见问题
+
+### 终端按钮是灰色
+
+节点当前离线。先检查 `monitor-agent` 服务和 `/api/agent/ws` 的反向代理配置。
+
+### 打开后提示无法启动终端
+
+确认节点已升级到 Cagent `v1.1.0` 或更高版本，并且系统存在 `/bin/bash` 或 `/bin/sh`。
+
+### 为什么不能执行 root 命令
+
+这是服务权限边界。默认安装刻意让 Cagent 和终端都以 `monitor-agent` 运行。需要 root 的运维操作应通过
+你现有的受控管理通道完成，不要把 agent 服务改成 root。

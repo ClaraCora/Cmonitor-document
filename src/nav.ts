@@ -12,6 +12,7 @@ export const nav: Section[] = [
     items: [
       { path: "/guide/introduction", label: "这是什么", desc: "用 Rust 写的轻量级服务器探针，由 hub、agent 与主题三部分组成。", keywords: "简介 introduction 组成 hub agent 主题" },
       { path: "/guide/philosophy", label: "设计哲学", desc: "安全、极简、高效三条取舍的理由，以及明确不做的功能。", keywords: "philosophy 极简 安全 高效 不做" },
+      { path: "/guide/web-terminal", label: "Web Terminal", desc: "通过在线 Cagent 打开节点本地 PTY，不使用 SSH 密码或私钥。", keywords: "terminal web ssh agent pty 远程终端 密码 私钥" },
     ],
   },
   {

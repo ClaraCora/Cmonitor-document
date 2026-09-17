@@ -10,12 +10,12 @@
 ## 提示词
 
 ```text
-你要在一台 Linux 服务器上部署 monitor，一个 Rust 写的服务器探针。
-文档：https://monitor-document.pages.dev/
+你要在一台 Linux 服务器上部署 Cmonitor，一个 Rust 写的服务器探针。
+文档：https://claracora.github.io/Cmonitor-document/
 
 ## 你要知道的前提
 
-- monitor 由三部分组成：hub（面板 + API，装在一台机器上）、agent（装在每台被监控的
+- Cmonitor 由三部分组成：hub（面板 + API，装在一台机器上）、Cagent（装在每台被监控的
   机器上）、主题（公开状态页的皮肤，默认已内置）。
 - hub 是单个 Rust 二进制加一个 SQLite 文件。零配置文件，所有设置存在数据库里。
 - 一键脚本装出来的 hub **只监听 127.0.0.1**，这是刻意的安全设计，不要试图改成
@@ -41,7 +41,7 @@
 - 问我域名是什么，并确认它已经解析到这台机器。
 
 ### 第二步：装 hub
-    curl -fsSL https://raw.githubusercontent.com/monitor-probe/monitor/main/install-hub.sh -o install-hub.sh
+    curl -fsSL https://raw.githubusercontent.com/ClaraCora/Cmonitor/main/install-hub.sh -o install-hub.sh
     chmod +x install-hub.sh
     sudo ./install-hub.sh --yes
 装完从日志里取出一次性应急密码给我：
@@ -103,6 +103,7 @@ Cloudflare 隧道，ingress 指向 http://127.0.0.1:28080 即可，不需要开�
    https://hub.example.com/api/auth/github/callback），
    把我的 GitHub 用户名填进白名单（留空 = 拒绝所有人），然后改掉应急密码
 3. 「节点」页添加节点，点下载按钮拿到安装命令
+4. 节点在线后，可点终端图标通过 Cagent 打开 Web Terminal；不需要填写 SSH 密码或私钥
 
 ### 第六步：如果我给了你节点的安装命令
 在目标机器上以 root 执行它，然后：
@@ -123,7 +124,8 @@ Cloudflare 隧道，ingress 指向 http://127.0.0.1:28080 即可，不需要开�
 
 - 不要把 hub 改成监听 0.0.0.0 或者去开 28080 的防火墙端口。
 - 不要给 agent 写 Docker 部署方案，它没有镜像，也不需要。
-- 不要建议装告警、WebSSH、插件之类的东西，这个项目明确不做这些。
+- 不要为 Web Terminal 配置 SSH 密码、私钥或开放 22 端口；它通过在线 Cagent 打开本地 PTY。
+- 不要把 agent 服务改成 root。终端应保持以 `monitor-agent` 用户运行。
 - 不要在「设置」里填 GitHub 代理，除非确认这台机器真的拉不到 GitHub Release。那个地址返回的
   字节会被装到每一台节点上并以 root 跑起来。
 ```

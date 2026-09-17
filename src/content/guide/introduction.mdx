@@ -10,9 +10,11 @@
 
 ```text
 agent (Linux VPS) ──WebSocket / JSON-RPC 2.0──▶ hub ──▶ 面板 + 公开状态页
+浏览器 Web Terminal ──WebSocket──▶ hub ──▶ Cagent 本地 PTY
 ```
 
 连接由 agent 主动发起，被监控的机器因此不必开放任何端口。NAT 后面的机器、只有 IPv6 的机器都能接入。
+Web Terminal 也复用这条出站连接，不需要 SSH 密码、私钥或 22 端口。
 
 <Note>
   hub 有 Docker 镜像，agent 没有。被监控的 VPS 通常资源紧张，为一个几 MiB 的静态二进制引入整套容器

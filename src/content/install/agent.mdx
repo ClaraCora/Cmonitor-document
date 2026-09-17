@@ -14,6 +14,10 @@ curl -fsSL https://hub.example.com/install.sh | sh -s -- \
 二进制由 hub 转发（`<hub>/agent/<arch>`），节点不需要能连上 GitHub——能连上 hub 就能装，
 IPv6-only 或者出不去的机器也一样。
 
+安装脚本会从 [Cagent](https://github.com/ClaraCora/Cagent) 的最新 Release 获取二进制，并把服务配置为
+`monitor-agent` 用户。Cagent `v1.1.0` 起支持 [Web Terminal](/guide/web-terminal)；升级时重跑同一条
+安装命令即可。
+
 ## 批量注册
 
 **节点 → 批量添加**开一个一小时的注册窗口。期间下面这条命令在任意机器上跑一次，那台机器就会带着

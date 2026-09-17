@@ -1,18 +1,19 @@
 ```text
 ┌─────────────┐  WebSocket / JSON-RPC 2.0  ┌───────────────┐      ┌─────────┐
-│    agent    │ ── Authorization: Bearer ─▶│      hub      │◀──── │ browser │
-│ (Linux VPS) │ ◀────── ping.tasks ─────── │ axum + SQLite │      │  React  │
+│   Cagent    │ ── Authorization: Bearer ─▶│ Cmonitor hub  │◀──── │ browser │
+│ (Linux VPS) │ ◀─ ping.tasks / terminal ─ │ axum + SQLite │      │  React  │
 └─────────────┘                            └───────────────┘      └─────────┘
-  读 /proc                                    monitor.db          面板 / 状态页
-  不写任何文件                                 后台内置，主题可换
+  读 /proc + 本地 PTY                         monitor.db          面板 / 状态页
+  monitor-agent 用户                          终端只做中继         Web Terminal
 ```
 
-## 三个仓库
+## 项目仓库
 
 | 仓库 | 内容 |
 |---|---|
-| [monitor](https://github.com/monitor-probe/monitor) | hub + 内置后台 + `install.sh` |
-| [agent](https://github.com/monitor-probe/agent) | Linux agent，发布自己的 musl 二进制 |
+| [Cmonitor](https://github.com/ClaraCora/Cmonitor) | hub + 内置后台 + `install.sh` |
+| [Cagent](https://github.com/ClaraCora/Cagent) | Linux agent、本地 PTY，发布自己的 musl 二进制 |
+| [Cmonitor-document](https://github.com/ClaraCora/Cmonitor-document) | 本文档站 |
 | [monitor-theme-default](https://github.com/monitor-probe/monitor-theme-default) | 默认公开页主题。**发布构建产物**，hub 按 sha256 钉住并嵌入 |
 
 agent 拆开是因为部署机器和发布节奏不同；默认主题拆开是为了让主题拥有独立的契约、版本和开发流程。
@@ -32,6 +33,9 @@ WebSocket 上承载 JSON-RPC 2.0 通知：只有 `method` 和 `params`，没有 
 | `hello` | `Facts` | 每次连接建立后一次 |
 | `report` | `Metrics` | 每 `--interval` 秒 |
 | `ping.result` | `{ task_id, latency_ms }`，`-1` 表示连不上 | 每个探测任务按自己的间隔 |
+| `terminal.ready` | `{ terminal_id }` | 本地 PTY 启动完成 |
+| `terminal.output` | `{ terminal_id, data }` | shell 有输出 |
+| `terminal.error` / `terminal.exit` | 终端 id、错误或退出状态 | 无法启动或进程结束 |
 
 `Facts`：hostname、os、kernel、arch、virt、cpu_name、cpu_cores、mem_total、swap_total、
 disk_total、agent_version、ipv4、ipv6
@@ -53,9 +57,16 @@ tcp  udp  procs
 | method | params | 何时发 |
 |---|---|---|
 | `ping.tasks` | `[{ id, target, interval }]` | 连接建立时；面板增删改探测任务时立刻下发 |
+| `terminal.open` | `{ terminal_id, cols, rows }` | 管理员打开 Web Terminal |
+| `terminal.input` | `{ terminal_id, data }` | 浏览器输入 |
+| `terminal.resize` | `{ terminal_id, cols, rows }` | 终端窗口变化 |
+| `terminal.close` | `{ terminal_id }` | 浏览器关闭、掉线或输出积压 |
 
 agent 收到后保留没变化的任务（同 id、同 target、同 interval），只重启变了的，免得每次下发都把
 所有计时器清零。
+
+终端帧使用同一条 agent WebSocket。hub 不实现 SSH 客户端，只校验管理员会话、绑定节点和
+`terminal_id`，再转发输入输出。Cagent 在目标主机以 `monitor-agent` 用户创建 PTY。
 
 ### 鉴权
 
@@ -86,6 +97,7 @@ GET /api/me
 GET /api/nodes
 GET /api/nodes/{id}/metrics?hours=N&points=W&series=metrics|ping
 GET /api/ws                 每 2 秒推一次快照
+GET /api/terminal/ws        管理员 Web Terminal，中继到在线 Cagent
 ```
 
 **登录**

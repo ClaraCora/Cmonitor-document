@@ -1,39 +1,36 @@
 ## 安全
 
-### 装 agent 不扩大被监控机器的攻击面
+### Agent 不新增入站端口
 
 - **不监听任何端口。** 连接由 agent 主动向 hub 发起，目标机器不必开端口，也不必改防火墙
 - **监控采集不写文件。** 指标采集只读 `/proc`、`/etc/os-release` 和 `statvfs`，没有数据库或缓存。
   累加流量、识别重启这些有状态的事都在 hub 侧
-- **终端不需要 SSH 凭据。** 管理员主动打开 Web Terminal 时，Cagent 以 `monitor-agent` 用户创建本地
-  PTY；hub 只转发输入输出，不保存密码或私钥
+- **终端不需要 SSH 凭据。** 管理员主动打开 Web Terminal 时，Cagent 以 root 权限创建本地 PTY；
+  hub 只转发输入输出，不保存密码或私钥
 - **不自动更新。** 自更新等于让 agent 有权以 root 下载并执行任意二进制。升级是重跑一遍安装命令
 
-### 最小权限运行
+### 权限边界
 
-systemd 单元不是只写一行 `ExecStart`：
+Cagent 是节点的远程管理通道，因此服务以 root 运行，Web Terminal 拥有与 root SSH 会话相同的主机
+权限。Cagent `v1.1.1` 起会检查运行身份，非 root 服务只能继续上报监控数据，不能创建终端。
 
 | | agent | hub |
 |---|---|---|
-| 身份 | 专用系统用户 `monitor-agent` | 专用系统用户 `monitor` |
-| 文件系统 | `ProtectSystem=strict` + `ProtectHome`，全盘只读 | 同上，另加 `ReadWritePaths` 只开 `data/` |
-| 提权 | `NoNewPrivileges`、`RestrictSUIDSGID` | `NoNewPrivileges`、`RestrictSUIDSGID` |
-| 隔离 | `PrivateTmp`；保留 PTY 所需的 `/dev/ptmx` 与 `/dev/pts` | `PrivateTmp`、`PrivateDevices` |
-| 网络 | `RestrictAddressFamilies=AF_INET AF_INET6 AF_NETLINK` | `AF_INET AF_INET6` |
-| 内存 | `MemoryMax=64M` | `MemoryMax=256M` |
+| 身份 | root | 专用系统用户 `monitor` |
+| 主机权限 | 完整系统访问，供 root PTY 使用 | `ProtectSystem=strict` + `ProtectHome`，只允许写 `data/` |
+| 网络 | 主动连接 hub，不监听端口 | 只监听回环地址，由反向代理提供 HTTPS 入口 |
+| 凭证 | 节点 token 存在 root-only 环境文件中，不传给 shell | 登录会话只在数据库中保存 sha256 |
 
-hub 因此连自己的二进制都改不了：可写的只有数据库和主题所在的那一个目录。
-
-没开 nesting 的 LXC 容器建不了挂载命名空间，systemd 会跳过「文件系统」和「隔离」两行，服务照常启动，
-其余几行不受影响。agent 不用 `DynamicUser` 正是为此：带着它的单元在这种容器里 systemd 拒绝启动，
-报 `226/NAMESPACE`。
+hub 仍然降权并使用 systemd 沙箱，因此连自己的二进制都改不了：可写的只有数据库和主题所在的目录。
+Agent 不使用会阻止 root 终端访问宿主文件系统的沙箱。
 
 节点 token 写在 `/opt/monitor/agent.env`，权限 `0600`，不写进服务定义——那些内容会出现在
-`systemctl cat` 和日志里。
+`systemctl cat` 和日志里。Cagent 读取连接参数后会从自身环境中移除 `MONITOR_TOKEN` 与
+`MONITOR_SERVER`，创建 shell 时再明确移除一次。
 
 <Note warn>
-  OpenRC 没有 systemd 的挂载命名空间与 `NoNewPrivileges` 等隔离项，但 agent 和终端仍以
-  `monitor-agent:monitor-agent` 用户运行。
+  Web Terminal 是完整的 root 远程命令入口。只有可信管理员才能获得后台登录权限；应使用 HTTPS，
+  并及时撤销不再需要的 GitHub 白名单账号和管理会话。
 </Note>
 
 ### 凭证的边界
@@ -70,14 +67,14 @@ hub 只有四个命令行参数：`--listen`、`--db`、`--themes`、`--site`。
 | 不做 | 原因 |
 |---|---|
 | 负载告警 | 阈值、持续时长、节点范围是一整套规则引擎。通知只做掉线、流量、到期、登录这几件判定明确的事 |
-| SSH 密码 / 私钥托管 | 凭据不进入 hub。Web Terminal 只复用 Cagent 已建立的连接，并以低权限用户执行 |
+| SSH 密码 / 私钥托管 | 凭据不进入 hub。Web Terminal 复用 Cagent 已建立的连接，在节点本地创建 root PTY |
 | 插件系统 | 等于把第三方代码请进 hub 的进程 |
 | ICMP / HTTP 探测 | TCP 一种够用，三种要三套超时语义、三套图例 |
 | agent 自动更新 | 自更新意味着 agent 能以 root 下载并执行任意二进制 |
 | 跨平台 agent | 加 Windows / macOS 等于推翻整个采集实现 |
 
 这些不是排期靠后，是不会做。Web Terminal 是唯一的远程命令入口，并被限制在已登录管理员、在线
-Cagent 和低权限本地 PTY 这三层边界内。
+Cagent 和节点本地 root PTY 这三层边界内。
 
 ## 高效
 

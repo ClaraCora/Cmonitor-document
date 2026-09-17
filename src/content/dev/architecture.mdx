@@ -3,8 +3,8 @@
 │   Cagent    │ ── Authorization: Bearer ─▶│ Cmonitor hub  │◀──── │ browser │
 │ (Linux VPS) │ ◀─ ping.tasks / terminal ─ │ axum + SQLite │      │  React  │
 └─────────────┘                            └───────────────┘      └─────────┘
-  读 /proc + 本地 PTY                         monitor.db          面板 / 状态页
-  monitor-agent 用户                          终端只做中继         Web Terminal
+  读 /proc + root PTY                         monitor.db          面板 / 状态页
+  root 服务                                   终端只做中继         Web Terminal
 ```
 
 ## 项目仓库
@@ -66,7 +66,8 @@ agent 收到后保留没变化的任务（同 id、同 target、同 interval）�
 所有计时器清零。
 
 终端帧使用同一条 agent WebSocket。hub 不实现 SSH 客户端，只校验管理员会话、绑定节点和
-`terminal_id`，再转发输入输出。Cagent 在目标主机以 `monitor-agent` 用户创建 PTY。
+`terminal_id`，再转发输入输出。Cagent 在目标主机以 root 权限创建 PTY；Cagent `v1.1.1` 起会拒绝
+非 root 进程发起的终端请求。
 
 ### 鉴权
 

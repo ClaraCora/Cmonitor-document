@@ -103,12 +103,13 @@ Cloudflare 隧道，ingress 指向 http://127.0.0.1:28080 即可，不需要开�
    https://hub.example.com/api/auth/github/callback），
    把我的 GitHub 用户名填进白名单（留空 = 拒绝所有人），然后改掉应急密码
 3. 「节点」页添加节点，点下载按钮拿到安装命令
-4. 节点在线后，可点终端图标通过 Cagent 打开 Web Terminal；不需要填写 SSH 密码或私钥
+4. 节点在线后，可点终端图标通过 Cagent 打开具有完整 root 权限的 Web Terminal；不需要填写 SSH 密码或私钥
 
 ### 第六步：如果我给了你节点的安装命令
 在目标机器上以 root 执行它，然后：
 - systemctl status monitor-agent 确认在跑
 - journalctl -u monitor-agent -n 30 看有没有报错
+- 确认安装脚本已把 Cagent 服务配置为 root；Cagent v1.1.1 起会拒绝非 root 的终端请求
 - 告诉我面板里这个节点几秒后应该就亮了
 
 ## 排查速查
@@ -125,7 +126,7 @@ Cloudflare 隧道，ingress 指向 http://127.0.0.1:28080 即可，不需要开�
 - 不要把 hub 改成监听 0.0.0.0 或者去开 28080 的防火墙端口。
 - 不要给 agent 写 Docker 部署方案，它没有镜像，也不需要。
 - 不要为 Web Terminal 配置 SSH 密码、私钥或开放 22 端口；它通过在线 Cagent 打开本地 PTY。
-- 不要把 agent 服务改成 root。终端应保持以 `monitor-agent` 用户运行。
+- 不要把 agent 服务改成非 root，也不要添加会阻止访问宿主文件系统的沙箱；Web Terminal 依赖 Cagent 以 root 运行。
 - 不要在「设置」里填 GitHub 代理，除非确认这台机器真的拉不到 GitHub Release。那个地址返回的
   字节会被装到每一台节点上并以 root 跑起来。
 ```

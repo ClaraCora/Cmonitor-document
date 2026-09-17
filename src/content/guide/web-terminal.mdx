@@ -11,10 +11,11 @@ hub 负责管理员会话校验和消息转发。真正的 shell 进程在目标
 
 | 组件 | 最低版本 |
 |---|---|
-| Cmonitor hub | `v1.2.0` |
-| Cagent | `v1.1.0` |
+| Cmonitor hub | `v1.2.5` |
+| Cagent | `v1.1.1` |
 
-旧 agent 可以继续上报监控数据，但不能创建终端。重跑节点安装命令即可升级 Cagent。
+旧 agent 可以继续上报监控数据，但不能按当前权限模型创建终端。重跑节点安装命令即可更新 Cagent
+二进制和 systemd/OpenRC 服务定义。
 
 ## 打开终端
 
@@ -27,9 +28,8 @@ hub 负责管理员会话校验和消息转发。真正的 shell 进程在目标
 
 ## 终端权限
 
-终端命令以 `monitor-agent` 服务用户运行，不是 root。systemd 部署继续受 `NoNewPrivileges`、
-`ProtectSystem=strict`、`ProtectHome` 和 `PrivateTmp` 限制；OpenRC 部署同样使用
-`monitor-agent:monitor-agent` 用户。
+默认安装会让 Cagent 服务以 root 运行，Cagent 创建的 PTY 因此拥有目标节点完整的 root 权限。
+Cagent `v1.1.1` 起会检查运行身份；如果服务不是 root，监控数据仍可继续上报，但终端请求会被拒绝。
 
 Cagent 在启动 shell 前移除 `MONITOR_TOKEN` 与 `MONITOR_SERVER`，所以在终端里执行 `env` 不会看到
 节点 token 或 hub 地址。hub 也不保存任何 SSH 凭据。
@@ -47,9 +47,9 @@ Cagent 在启动 shell 前移除 `MONITOR_TOKEN` 与 `MONITOR_SERVER`，所以�
 
 ### 打开后提示无法启动终端
 
-确认节点已升级到 Cagent `v1.1.0` 或更高版本，并且系统存在 `/bin/bash` 或 `/bin/sh`。
+确认节点已升级到 Cagent `v1.1.1` 或更高版本，并且系统存在 `/bin/bash` 或 `/bin/sh`。
 
-### 为什么不能执行 root 命令
+### 提示 Cagent 未以 root 运行
 
-这是服务权限边界。默认安装刻意让 Cagent 和终端都以 `monitor-agent` 运行。需要 root 的运维操作应通过
-你现有的受控管理通道完成，不要把 agent 服务改成 root。
+重新执行面板生成的节点安装命令。Cmonitor `v1.2.5` 起的安装脚本会同时更新 Cagent 二进制和服务定义，
+让 systemd 或 OpenRC 以 root 启动 Cagent。

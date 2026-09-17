@@ -22,8 +22,8 @@ const SECURITY = [
     d: "Web Terminal 复用 agent 已建立的 WebSocket，由节点上的 Cagent 打开本地 PTY。hub 不保存 SSH 密码或私钥，节点也不必开放 22 端口。",
   },
   {
-    t: "两个服务都降权运行",
-    d: "hub 与 agent 各以专用系统用户运行。终端命令继承 monitor-agent 的权限和 systemd 沙箱，不会得到 root、节点 token 或 SSH 凭据。",
+    t: "root 权限只交给可信管理员",
+    d: "hub 以专用系统用户运行；Cagent 以 root 运行，为 Web Terminal 提供完整的节点管理权限。终端不会得到节点 token 或 SSH 凭据。",
   },
   {
     t: "默认只监听回环",

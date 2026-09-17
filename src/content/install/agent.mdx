@@ -15,8 +15,8 @@ curl -fsSL https://hub.example.com/install.sh | sh -s -- \
 IPv6-only 或者出不去的机器也一样。
 
 安装脚本会从 [Cagent](https://github.com/ClaraCora/Cagent) 的最新 Release 获取二进制，并把服务配置为
-`monitor-agent` 用户。Cagent `v1.1.0` 起支持 [Web Terminal](/guide/web-terminal)；升级时重跑同一条
-安装命令即可。
+root。这样 [Web Terminal](/guide/web-terminal) 才能在目标节点提供完整的 root 权限。Cagent `v1.1.1`
+起会拒绝非 root 的终端请求；旧安装重跑同一条节点安装命令即可更新二进制和服务定义。
 
 ## 批量注册
 
@@ -58,7 +58,6 @@ done
 # systemd
 systemctl disable --now monitor-agent
 rm -f /etc/systemd/system/monitor-agent.service && systemctl daemon-reload
-userdel monitor-agent
 
 # OpenRC
 rc-update del monitor-agent default && rc-service monitor-agent stop

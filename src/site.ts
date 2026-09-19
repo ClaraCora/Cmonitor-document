@@ -1,5 +1,5 @@
 export const REPO = "https://github.com/ClaraCora/Cmonitor"
 export const REPO_AGENT = "https://github.com/ClaraCora/Cagent"
-export const REPO_THEME = "https://github.com/monitor-probe/monitor-theme-default"
+export const REPO_THEME = "https://github.com/ClaraCora/Cmonitor-theme-default"
 export const REPO_DOC = "https://github.com/ClaraCora/Cmonitor-document"
 export const SITE = "https://cmonitor-document.pages.dev/"

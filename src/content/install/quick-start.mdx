@@ -52,7 +52,8 @@ nginx 与 Cloudflare 隧道的完整配置，以及四个需要注意的问题�
 
 ## 3. 进面板
 
-打开 `https://hub.example.com/admin`，用第 1 步的应急密码登录。
+面板地址在安装完成时由脚本输出（之后也能用 `journalctl -u monitor-hub | grep 'Sign in'` 找回），
+用第 1 步的应急密码登录。
 
 **安全**页可以把应急密码改掉，也可以另外配一套 GitHub 单点登录；只用密码登录同样完整可用。
 两条通道的配置与排查见[登录与安全](/config/auth)。

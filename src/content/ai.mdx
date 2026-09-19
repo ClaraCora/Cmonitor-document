@@ -89,7 +89,7 @@ Cloudflare 隧道，ingress 指向 http://127.0.0.1:28080 即可，不需要开�
 - 透传 X-Forwarded-For。漏了登录限流按代理地址计数，所有人共用一个桶
 
 ### 第四步：验证
-    curl -sI https://hub.example.com/admin | head -1        # 期望 200
+    curl -sI https://hub.example.com/ | head -1             # 期望 200（状态页）
     curl -sI -o /dev/null -w '%{http_code}\n' \
       -H 'Connection: Upgrade' -H 'Upgrade: websocket' \
       -H 'Sec-WebSocket-Version: 13' -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==' \
@@ -98,7 +98,8 @@ Cloudflare 隧道，ingress 指向 http://127.0.0.1:28080 即可，不需要开�
 
 ### 第五步：告诉我接下来手动做什么
 你不要替我做这几件事，只把清单给我：
-1. 打开 https://hub.example.com/admin，用应急密码登录
+1. 打开安装输出的面板地址（journalctl -u monitor-hub | grep 'Sign in' 随时能找回），
+   用应急密码登录
 2. 「安全」页配置 GitHub OAuth（回调必须精确填
    https://hub.example.com/api/auth/github/callback），
    把我的 GitHub 用户名填进白名单（留空 = 拒绝所有人），然后改掉应急密码

@@ -98,6 +98,7 @@ GET /api/me
 GET /api/nodes
 GET /api/nodes/{id}/metrics?hours=N&points=W&series=metrics|ping
 GET /api/ws                 每 2 秒推一次快照
+GET /api/visitor            访客自己的地址与归属地，hub 代理查询
 GET /api/terminal/ws        管理员 Web Terminal，中继到在线 Cagent
 ```
 
@@ -123,19 +124,20 @@ DELETE /api/themes/{short}         GET  /api/themes/{short}/preview
 POST   /api/themes/{short}/update
 GET    /api/db                     GET  /api/db/backup
 POST   /api/db/restore             POST /api/db/vacuum
+GET    /api/visitor-log            DELETE /api/visitor-log
 ```
 
 其余路径的处理顺序：
 
 ```text
 /api/*           未匹配即 404，不回落 SPA
-/admin, /admin/* 内置后台
+面板前缀/*        内置后台；前缀不随文档公开，以安装完成时的输出为准
 其它             当前磁盘主题；不可用时回落内置默认主题
 ```
 
 ## 数据模型
 
-八张表。schema 版本记在 SQLite 自带的 `PRAGMA user_version` 里。
+九张表。schema 版本记在 SQLite 自带的 `PRAGMA user_version` 里。
 
 | 表 | 作用 |
 |---|---|
@@ -146,6 +148,7 @@ POST   /api/db/restore             POST /api/db/vacuum
 | `ping_task` / `ping_node` | 探测任务及其节点分配 |
 | `ping_record` | 探测结果，同样按保留天数删 |
 | `session` | 登录会话，存 sha256，14 天过期 |
+| `visitor_log` | 状态页最近 100 次访问，写入即裁剪 |
 
 `traffic` 单独一张表，是因为它的生命周期和 `node` 完全不同：一个是用户偶尔改一次的配置，一个是
 每秒都在写的热数据。更要紧的是 `metric` 可以随便清理而累计流量不受影响，因为累计值不是从明细

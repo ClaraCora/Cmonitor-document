@@ -123,8 +123,8 @@ proxy_set_header X-Forwarded-For $http_cf_connecting_ip;
 ## 验证
 
 ```bash
-# 面板打得开，且是 https
-curl -sI https://hub.example.com/admin | head -1
+# 状态页打得开，且是 https
+curl -sI https://hub.example.com/ | head -1
 
 # WebSocket 能升级（应答 101）
 curl -sI -o /dev/null -w '%{http_code}\n' \

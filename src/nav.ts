@@ -31,13 +31,15 @@ export const nav: Section[] = [
       { path: "/config/auth", label: "登录与安全", desc: "应急密码与 GitHub 单点登录的配置，以及登录不通时的排查路径。", keywords: "github oauth sso 登录 密码 应急 白名单 callback" },
       { path: "/config/notify", label: "通知", desc: "Telegram 与 Webhook 推送掉线、流量、到期和登录，以及常见服务的请求体写法。", keywords: "通知 告警 telegram tg bot webhook discord slack 钉钉 企业微信 飞书 bark ntfy gotify 离线 掉线 到期" },
       { path: "/config/traffic", label: "流量统计", desc: "三个流量数字的算法、周期与配额口径，以及和商家对不上的原因。", keywords: "流量 traffic 重置日 月流量 计费 sum max 上行 下行 配额" },
+      { path: "/config/latency", label: "延迟监控", desc: "TCPing 探测任务的建法，以及状态页圆点、丢包率与延迟图表的读法。", keywords: "延迟 tcping ping 丢包 探测 波动 图表" },
+      { path: "/config/status-page", label: "状态页与访客", desc: "公开开关、隐藏节点、访客卡片与最近 100 次访问的访客记录。", keywords: "状态页 公开 隐藏 不公开 访客 记录 visitor ip 归属地" },
     ],
   },
   {
     title: "开发指南",
     items: [
       { path: "/dev/theme", label: "主题开发", desc: "主题包格式、可用的四个接口、必须处理的三种状态与本地开发。", keywords: "主题 theme theme.json dist 接口 nodes metrics 开发 上传 切换" },
-      { path: "/dev/architecture", label: "架构与协议", desc: "仓库分工、线上协议、请求路径与八张数据表。", keywords: "架构 architecture 协议 json-rpc websocket 数据表 schema 路由" },
+      { path: "/dev/architecture", label: "架构与协议", desc: "仓库分工、线上协议、请求路径与九张数据表。", keywords: "架构 architecture 协议 json-rpc websocket 数据表 schema 路由" },
     ],
   },
   {

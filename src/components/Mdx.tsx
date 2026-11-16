@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 function Pre({ children, ...props }: React.ComponentProps<"pre">) {
   const ref = useRef<HTMLPreElement>(null)
   const [done, setDone] = useState(false)
+  const [error, setError] = useState(false)
   // "text" is what a fence with no language becomes; labelling it adds nothing.
   const lang = props["data-language" as keyof typeof props] as string | undefined
   return (
@@ -21,16 +22,20 @@ function Pre({ children, ...props }: React.ComponentProps<"pre">) {
       )}
       <button
         aria-label="复制"
-        onClick={() => {
-          navigator.clipboard?.writeText(ref.current?.innerText ?? "").then(() => {
+        onClick={async () => {
+          setError(false)
+          try {
+            if (!navigator.clipboard) throw new Error("clipboard unavailable")
+            await navigator.clipboard.writeText(ref.current?.innerText ?? "")
             setDone(true)
             setTimeout(() => setDone(false), 1600)
-          })
+          } catch { setError(true) }
         }}
-        className="absolute top-2 right-2 rounded-md border border-border bg-background/90 p-1.5 text-muted-foreground opacity-0 transition-all group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100"
+        className="copy-code absolute top-2 right-2 rounded-md border border-border bg-background/90 p-1.5 text-muted-foreground opacity-0 transition-all group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100"
       >
         {done ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
       </button>
+      <span role="status" className={error ? "block px-3 pb-2 text-xs text-destructive" : "sr-only"}>{error ? "复制失败，请手动选择代码复制" : done ? "已复制" : ""}</span>
     </div>
   )
 }

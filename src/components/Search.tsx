@@ -29,7 +29,9 @@ function mark(line: string, q: string) {
 export function Search() {
   const [open, setOpen] = useState(false)
   const [q, setQ] = useState("")
-  const [ready, setReady] = useState(false)
+  const [ready, setReady] = useState(!!body)
+  const [indexError, setIndexError] = useState(false)
+  const [attempt, setAttempt] = useState(0)
   const [active, setActive] = useState(0)
   const input = useRef<HTMLInputElement>(null)
   const list = useRef<HTMLDivElement>(null)
@@ -42,7 +44,13 @@ export function Search() {
     return () => removeEventListener("keydown", onKey)
   }, [])
 
-  useEffect(() => { if (open && !body) loadIndex().then((i) => { body = i; setReady(true) }) }, [open])
+  useEffect(() => {
+    if (!open || body) return
+    let active = true
+    setIndexError(false)
+    loadIndex().then(i => { body = i; if (active) setReady(true) }).catch(() => { if (active) setIndexError(true) })
+    return () => { active = false }
+  }, [open, attempt])
 
   const hits = useMemo<Hit[]>(() => {
     const needle = q.trim().toLowerCase()
@@ -72,6 +80,7 @@ export function Search() {
   return (
     <>
       <button
+        aria-label="搜索文档"
         onClick={() => setOpen(true)}
         className="flex h-8 items-center gap-2 rounded-md border border-border bg-muted/40 px-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted sm:w-56"
       >
@@ -93,6 +102,12 @@ export function Search() {
             <SearchIcon className="size-4 shrink-0 text-muted-foreground" />
             <input
               ref={input}
+              aria-label="搜索文档关键词"
+              role="combobox"
+              aria-expanded="true"
+              aria-controls="doc-search-results"
+              aria-autocomplete="list"
+              aria-activedescendant={hits[active] ? `search-result-${active}` : undefined}
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="搜索文档…"
@@ -110,10 +125,14 @@ export function Search() {
               className="h-12 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             />
           </div>
-          <div ref={list} className="max-h-80 overflow-y-auto p-2 thin-scroll">
+          {!ready && <p role="status" className="px-4 py-2 text-xs text-muted-foreground">{indexError ? "全文索引加载失败，暂时仅搜索标题。" : "正在加载全文索引，当前可搜索标题…"}{indexError && <button className="ml-2 underline" onClick={() => setAttempt(n => n + 1)}>重试</button>}</p>}
+          <div id="doc-search-results" role="listbox" aria-label="搜索结果" ref={list} className="max-h-80 overflow-y-auto p-2 thin-scroll">
             {hits.map((h, i) => (
               <button
                 key={h.path}
+                id={`search-result-${i}`}
+                role="option"
+                aria-selected={i === active}
                 onClick={() => open_(h)}
                 onMouseMove={() => setActive(i)}
                 className={cn(
@@ -129,7 +148,7 @@ export function Search() {
               </button>
             ))}
             <p className={cn("px-3 py-6 text-center text-sm text-muted-foreground", (hits.length || !q) && "hidden")}>
-              没有匹配的内容
+              {ready ? "没有匹配的内容" : "标题中没有匹配项；全文搜索尚不可用"}
             </p>
             <p className={cn("px-3 py-6 text-center text-sm text-muted-foreground", q && "hidden")}>
               输入关键词，比如 nginx、流量、批量

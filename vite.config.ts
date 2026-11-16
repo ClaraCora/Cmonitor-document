@@ -33,7 +33,10 @@ function searchIndex(): Plugin {
           return ["/" + f.replace(/\.mdx$/, "").replaceAll("\\", "/"), text]
         }),
       )
-      return `export default ${JSON.stringify(Object.fromEntries(entries))}`
+      const json = JSON.stringify(Object.fromEntries(entries))
+      if (this.environment?.config.command === "serve") return `export default ${json}`
+      const asset = this.emitFile({ type: "asset", name: "search-index.json", source: json })
+      return `export default import.meta.ROLLUP_FILE_URL_${asset}`
     },
   }
 }

@@ -71,3 +71,16 @@ rm -f /opt/monitor/monitor-agent /opt/monitor/agent.env
 ```
 
 然后在面板里删掉这个节点。
+
+## 网卡统计范围（Cagent 1.2.0）
+
+默认保留原有过滤规则，避免桥接、容器和隧道重复计数。需要指定接口时，在 Agent 环境文件设置：
+
+```ini
+MONITOR_NET_INCLUDE=eth0,ens*
+MONITOR_NET_EXCLUDE=ens192
+MONITOR_DISABLE_TERMINAL=true
+```
+
+也可用 `--net-include`、`--net-exclude`、`--disable-terminal` 启动参数。列表以逗号分隔，名称精确匹配，末尾 `*` 匹配前缀；排除规则优先。非空 include 列表覆盖默认过滤，请只选择应计费的一层接口。
+修改范围后重启 Agent；计数范围签名改变会重建 Hub 的采集基线，保留已累计的用量，避免新增接口的历史计数突然记账。

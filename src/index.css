@@ -210,3 +210,7 @@
 
 /* Sidebar scrollbar: present, but not emphasised. */
 .thin-scroll { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+
+.prose :not(pre) > code, .prose a { overflow-wrap: anywhere; word-break: break-word; }
+[data-slot="dialog-content"] { max-width: calc(100vw - 2rem); }
+@media (hover: none), (pointer: coarse) { .copy-code { opacity: 1; } }

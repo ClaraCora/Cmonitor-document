@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 declare const __BASE__: string
 declare module "virtual:search-index" {
-  const index: Record<string, string>
+  const index: Record<string, string> | string
   export default index
 }
 declare module "virtual:page-dates" {

@@ -125,3 +125,9 @@ GitHub 仓库拉最新 release，tag 和已装版本相同就不下载。
 [Cmonitor-theme-default](https://github.com/ClaraCora/Cmonitor-theme-default)，React + Vite +
 shadcn/ui，iOS 色系，昼夜壁纸配毛玻璃卡片。它同时是内置默认主题和第三方主题的范本：hub 嵌进去的那个包，和解到
 `themes/` 的那个是同一个文件。
+
+## 默认主题交付链
+
+发布默认主题后，Hub 的 `sync-theme` 工作流每 6 小时检查正式 release，也可手动触发。它读取发布的 SHA256、校验归档、检查最低 Hub 版本，再创建 pin 更新 PR，并显式触发集成 CI。仓库需允许 GitHub Actions 创建 PR（Settings → Actions → General）。若组织策略禁止自动创建，工作流会失败并保留日志，可手动运行 `python3 scripts/sync-theme-pin.py` 后提交 pin。
+
+主题、Hub 内置主题和磁盘覆盖主题保持独立可查的版本；PR 合并和 Hub 发布是可审查的步骤。`min_hub_version` 不满足时，新 Hub 会拒绝安装该主题。

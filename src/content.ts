@@ -14,4 +14,10 @@ export const pages: Record<string, ComponentType> = Object.fromEntries(
 /** Plain-text bodies keyed by route, built by the searchIndex() plugin. Imported
  *  dynamically, so it costs nothing until search is opened. */
 export const loadIndex = () =>
-  import("virtual:search-index").then((m) => m.default as Record<string, string>)
+  import("virtual:search-index").then(async m => {
+    const index = m.default
+    if (typeof index !== "string") return index as Record<string, string>
+    const response = await fetch(index, { signal: AbortSignal.timeout(10_000) })
+    if (!response.ok) throw new Error("search index unavailable")
+    return await response.json() as Record<string, string>
+  })

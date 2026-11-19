@@ -83,6 +83,7 @@ token 只在握手时校验一次，所以换发 token 时 hub 会主动把那�
 
 ```text
 GET  /api/agent/ws          Bearer token，长连接
+GET  /healthz               公开，只返回 Hub 可用状态和在线数量
 GET  /install.sh            公开，不含密钥
 GET  /agent/{arch}          公开，把 release 二进制从 GitHub 转发给节点
 POST /api/agent/register    公开，凭窗口内有效的注册 key 换一个节点 token

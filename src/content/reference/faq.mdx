@@ -1,3 +1,7 @@
+## 给站外监控使用哪个地址
+
+`GET /healthz` 是不需要登录的轻量探活地址。返回 HTTP 200 和 `status: "ok"` 时，Hub 能响应请求并读取数据库；响应体只包含状态和在线数量，不包含节点名称、Token 或设置。建议站外监控同时检查公网入口和这个地址，并设置连续失败阈值。
+
 ## 装完面板打不开
 
 这是正常的。一键脚本装出来的 hub 只监听 `127.0.0.1`，公网访问不到。
@@ -134,12 +138,12 @@ docker run -d -e TZ=Asia/Shanghai ...
 
 ```bash
 # 旧机器：停服务，复制整个数据目录
+systemctl stop monitor-backup-status.timer monitor-backup.timer
 systemctl stop monitor-hub
 tar czf monitor-data.tar.gz -C /opt/monitor data
 
 # 新机器：先按快速开始装一遍 hub，再把数据放回去
 sudo ./install-hub.sh
-systemctl stop monitor-hub
 tar xzf monitor-data.tar.gz -C /opt/monitor
 chown -R monitor:monitor /opt/monitor/data
 systemctl start monitor-hub
@@ -162,7 +166,7 @@ WAL 模式下不截断的话文件只会变大不会变小，所以这三步是�
 
 ## 怎么升级
 
-hub 重跑一遍安装脚本：校验通过才替换，起不来自动回滚，没写的参数沿用上次的。
+hub 重跑一遍安装脚本：校验通过才替换，起不来失败时会恢复上一版文件，并需要重新检查服务，没写的参数沿用上次的。
 
 agent 重跑一遍它的安装命令。没有自动更新，因为自更新意味着 agent 能以 root 下载并执行任意二进制。
 

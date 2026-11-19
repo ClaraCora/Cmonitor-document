@@ -19,7 +19,7 @@ Hub `v1.2.6` 起，根据内置的 `agent.pin` 从 [Cagent](https://github.com/C
 使用第三方 GitHub 下载代理也不能跳过该校验。升级 Agent 固定版本时需要先更新 Hub。
 
 安装脚本把服务配置为
-root。这样 [Web Terminal](/guide/web-terminal) 才能在目标节点提供完整的 root 权限。Cagent `v1.1.1`
+root。这样 [Web Terminal](/guide/web-terminal) 才能在目标节点提供完整的 root 权限。Cagent `v1.2.1`
 起会拒绝非 root 的终端请求；旧安装重跑同一条节点安装命令即可更新二进制和服务定义。
 
 ## 批量注册
@@ -72,7 +72,7 @@ rm -f /opt/monitor/monitor-agent /opt/monitor/agent.env
 
 然后在面板里删掉这个节点。
 
-## 网卡统计范围（Cagent 1.2.0）
+## 网卡统计范围（Cagent 1.2.1）
 
 默认保留原有过滤规则，避免桥接、容器和隧道重复计数。需要指定接口时，在 Agent 环境文件设置：
 

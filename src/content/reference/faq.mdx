@@ -1,6 +1,6 @@
 ## 给站外监控使用哪个地址
 
-`GET /healthz` 是不需要登录的轻量探活地址。返回 HTTP 200 和 `status: "ok"` 时，Hub 能响应请求并读取数据库；响应体只包含状态和在线数量，不包含节点名称、Token 或设置。建议站外监控同时检查公网入口和这个地址，并设置连续失败阈值。
+`GET /healthz` 是不需要登录的轻量探活地址。返回 HTTP 200 和 `status: "ok"` 时，Hub 能响应请求并读取数据库；响应体只包含服务状态，不包含节点名称、Token 或设置。建议站外监控同时检查公网入口和这个地址，并设置连续失败阈值。
 
 ## 装完面板打不开
 
@@ -136,21 +136,9 @@ docker run -d -e TZ=Asia/Shanghai ...
 
 ## 搬到另一台机器
 
-```bash
-# 旧机器：停服务，复制整个数据目录
-systemctl stop monitor-backup-status.timer monitor-backup.timer
-systemctl stop monitor-hub
-tar czf monitor-data.tar.gz -C /opt/monitor data
+优先从经过校验的备份在新机器做恢复演练。需要停机搬迁时，先暂停旧机已启用的备份和状态计时器，并等待运行中的对应任务结束。停 Hub 后再打包整个数据目录，保留所有者、权限、主题和数据库日志文件。备份脚本、服务定义、反代与证书也要单独备妥。
 
-# 新机器：先按快速开始装一遍 hub，再把数据放回去
-sudo ./install-hub.sh
-tar xzf monitor-data.tar.gz -C /opt/monitor
-chown -R monitor:monitor /opt/monitor/data
-systemctl start monitor-hub
-```
-
-域名指过来之后所有 agent 会自己重连，它们连的是域名不是 IP。换了域名的话，每台节点都要重跑一遍
-安装命令。
+在新机器安装同版本 Hub，停止 Hub 和所有数据库写入任务后，将归档展开到独立目录。核对完整性与权限后再切换数据目录，启动 Hub，验证首页、配置 API 和原节点上报，再恢复原先启用的计时器。使用固定 HTTP IP 的 Agent 要继续能访问原来的 IP 和端口。
 
 ## 数据库越来越大
 
@@ -189,4 +177,4 @@ root 运行，或者当前登录会话失效时都不会建立终端。旧安装
 
 ## 能加负载告警或插件吗
 
-当前不支持。通知仍只做掉线、流量、到期和登录；hub 也不加载第三方插件。
+当前不支持。通知支持掉线和恢复、流量、到期、登录、磁盘空间及探测异常和恢复；hub 也不加载第三方插件。

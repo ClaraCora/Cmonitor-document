@@ -9,10 +9,16 @@ curl -fsSL https://hub.example.com/install.sh | sh -s -- \
   --server https://hub.example.com --token <token>
 ```
 
-以 root 在目标主机执行，几秒钟后节点就会在面板里亮起来。
+以 root 在目标主机执行。Agent 启动后，节点会在面板显示在线。从 Hub `v1.8.2` 起，首次通过 HTTPS 安装时，同一条命令也会检查 Python 3.8 或更高版本，需要时通过系统包管理器补装，然后启用 v2 升级器。批量注册使用同一流程。
 
-二进制由 hub 转发（`<hub>/agent/<arch>`），节点不需要能连上 GitHub——能连上 hub 就能装，
-IPv6-only 或者出不去的机器也一样。
+Agent 二进制和升级器都从 Hub 下载。已有可用 Python 的节点首次安装只需连接 Hub；需要补装 Python 的节点还要能访问系统软件源。打开 **节点 → 升级 Agent**，看到该节点显示「升级器 v2」和最近心跳，即可确认它已接入在线升级。后续执行升级任务时，升级器还会从 Cagent 的 GitHub Release 读取校验清单。
+
+如果 Agent 已经在线，但升级器安装失败，先按安装输出修复依赖或网络，再使用本机已有凭据重试：
+
+```bash
+curl --proto '=https' -fsS https://hub.example.com/install.sh -o install.sh &&
+  sh ./install.sh --updater-only
+```
 
 Hub `v1.2.6` 起，根据内置的 `agent.pin` 从 [Cagent](https://github.com/ClaraCora/Cagent) 的固定 Release
 获取二进制。Hub 校验固定 SHA-256 后才转发，安装脚本再次校验后才安装，校验失败不会替换正在运行的 Agent。
@@ -64,14 +70,19 @@ done
 
 ```bash
 # systemd
+systemctl disable --now monitor-agent-updater.timer  # 已启用在线升级时执行
+systemctl stop monitor-agent-updater.service         # 等待运行中的升级任务结束后执行
+rm -f /etc/systemd/system/monitor-agent-updater.timer /etc/systemd/system/monitor-agent-updater.service
 systemctl disable --now monitor-agent
 rm -f /etc/systemd/system/monitor-agent.service && systemctl daemon-reload
 
 # OpenRC
+rc-service monitor-agent-updater stop && rc-update del monitor-agent-updater default  # 已启用在线升级时执行
+rm -f /etc/init.d/monitor-agent-updater
 rc-update del monitor-agent default && rc-service monitor-agent stop
 rm -f /etc/init.d/monitor-agent
 
-rm -f /opt/monitor/monitor-agent /opt/monitor/agent.env
+rm -f /opt/monitor/monitor-agent /opt/monitor/agent.env /opt/monitor/agent-updater.py
 ```
 
 然后在面板里删掉这个节点。
